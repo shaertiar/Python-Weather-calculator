@@ -1,97 +1,89 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QProgressBar, QMessageBox
+import tkinter as tk
+from tkinter import ttk
 import time
+import random
 
-# Handling button clicks
+# Создание функции, которая будет "искать" погоду
 def search_weather():
-    import time
+    global progress_bar, text
 
-    # Create main line
-    search_mode()
+    # Функции обновления линии прогресса и текста
+    def update():
+        global progress_bar, text
 
-    # Cheate message box
-    msgBox = QMessageBox()
-    msgBox.setWindowTitle('Результат')
-    msgBox.setText('Хз, посмотри на улицу :/')
-    msgBox.setStandardButtons(QMessageBox.Ok)
-    msgBox.setFixedSize(WW, WH)
+        # Увеличение полоски загрузки
+        if progress_bar['value'] < 100:
+            progress_bar['value'] += random.randint(3, 9)
 
-    msgBox.show()
-    return_value = msgBox.exec()
+            if progress_bar['value'] > 100:
+                progress_bar['value'] = 100
 
-    if return_value == QMessageBox.Ok:
-        standart_mode()
+        # Изменение текста
+        if progress_bar['value'] < 10:
+            text['text'] = 'Отправка...'
+        elif 10 <= progress_bar['value'] < 27:
+            text['text'] = 'Получение...'
+        elif 27 <= progress_bar['value'] < 81:
+            text['text'] = 'Обработка...'
+        elif 81 <= progress_bar['value'] < 99:
+            text['text'] = 'Загрузка...'
+        elif progress_bar['value'] == 100:
+            text['text'] = 'Хз... Выгляни в окно.'
 
-def standart_mode():
-    # Window settings
-    WW, WH = 252, 150
+        # Обновление данных
+        top.after(750, update)
 
-    # Create app
-    app = QApplication([])
+    # Проверка на наличие написанного региона
+    if entry.get() == '':
+        text2.config(text='Не указан регион!')
+    else:
+        text2.config(text='')
 
-    # Create the window
-    window = QWidget()
-    window.setFixedSize(WW, WH)
-    window.setWindowTitle('Погода')
+        # Создание второго окна
+        top = tk.Toplevel()
+        top.geometry('320x240')
+        top.resizable(False, False)
+        top.title(f'Погода ({entry.get()})')
 
-    # Create widgets
-    text1 = QLabel('<h1>Погода от Shaertiar.</h1>')
-    text2 = QLabel('<h3>Введите <b>ваш</b> регион</h3>')
+        # Создание линии прогресса
+        progress_bar = ttk.Progressbar(top, orient='horizontal', length=300)
 
-    line_input = QLineEdit('Москва')
+        # Создание текста
+        text = tk.Label(top, text='')
 
-    button = QPushButton('Поиск')
+        # Обновление данных
+        top.after(100, update)
 
-    # Create main line
-    line1 = QVBoxLayout()
-    line2 = QHBoxLayout()
+        # Размещение элементов
+        progress_bar.pack()
+        text.pack()
 
-    # Past widgets to lines
-    line2.addWidget(line_input, 50, Qt.AlignCenter)
-    line2.addWidget(button, 20, Qt.AlignCenter)
+# Создание окна
+root = tk.Tk()
+root.geometry('320x240')
+root.resizable(False, False)
+root.title('Прогноз погоды')
 
-    line1.addStretch(1)
-    line1.addWidget(text1, alignment=Qt.AlignCenter)
-    line1.addWidget(text2, alignment=Qt.AlignCenter)
-    line1.addStretch(1)
-    line1.addLayout(line2)
-    line1.addStretch(1)
+# Создание бортика
+frame = tk.LabelFrame(root, padx=20, pady=20)
 
-    button.clicked.connect(search_weather)
+# Создание текста
+text1 = tk.Label(root, text='Прогноз погоды')
+text2 = tk.Label(frame, text='')
 
-    # Past line to window
-    window.setLayout(line1)
+# Создание поля для ввода
+entry = tk.Entry(frame, width=35, borderwidth=5)
+entry.insert(0, 'Щелково')
 
-    # Show app
-    window.show()
-    app.exec()
+# Создание кнопки
+button = tk.Button(frame, text='Узнать погоду в регионе', command=lambda: search_weather())
 
-def search_mode():
-    # Window settings
-    WW, WH = 252, 150
+# Размещение элементов
+text1.pack()
+frame.pack(padx=10, pady=10)
+entry.pack()
+button.pack(pady=10)
+text2.pack()
 
-    # Create app
-    app = QApplication([])
-
-    # Create the window
-    window = QWidget()
-    window.setFixedSize(WW, WH)
-    window.setWindowTitle('Обработка...')
-
-    # Create widgets
-    text = QLabel('<h1>Загрузка...</h1>')
-
-    # Create main line
-    line = QVBoxLayout()
-
-    line.addWidget(text, alignment=Qt.AlignCenter)
-
-    # Past line to window
-    window.setLayout(line)
-
-    standart_mode()
-
-    # Show app
-    window.show()
-
-standart_mode()
+# Запуск приложения
+root.mainloop()
